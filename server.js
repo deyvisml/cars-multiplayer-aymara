@@ -10,7 +10,7 @@ app.use(express.static("public"));
 
 let players = {
   player1: { distance: 0 },
-  player2: { distance: 0 }
+  player2: { distance: 0 },
 };
 
 io.on("connection", (socket) => {
@@ -21,7 +21,7 @@ io.on("connection", (socket) => {
   // 🔴 YA NO usamos "move"
   socket.on("analyzeResult", ({ player, similarity }) => {
     if (players[player]) {
-        console.log(`Jugador ${player} tiene similitud: ${similarity}`);
+      console.log(`Jugador ${player} tiene similitud: ${similarity}`);
       const advance = similarity * 0.2; // regla simple
       players[player].distance += advance;
 
