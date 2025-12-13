@@ -1,0 +1,105 @@
+const socket = io();
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+
+let players = {};
+const myPlayer = prompt("Escribe: player1 o player2");
+
+const playerCenterY = canvas.height / 2;
+const carWidth = 50;
+const carHeight = 80;
+
+socket.on("currentPlayers", (data) => {
+  players = data;
+});
+
+socket.on("updatePlayers", (data) => {
+  players = data;
+});
+
+// Control: tecla W
+document.addEventListener("keydown", async (e) => {
+  if (e.key === "w") {
+    try {
+      const similarity = await sendAudioForAnalysis();
+
+      socket.emit("analyzeResult", {
+        player: myPlayer,
+        similarity
+      });
+
+    } catch (err) {
+      console.error("Error enviando audio", err);
+    }
+  }
+});
+
+function drawRoad(offset) {
+  ctx.fillStyle = "#555";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  ctx.strokeStyle = "#fff";
+  ctx.lineWidth = 4;
+
+  for (let y = -100; y < canvas.height + 100; y += 40) {
+    ctx.beginPath();
+    ctx.moveTo(canvas.width / 2, y + offset);
+    ctx.lineTo(canvas.width / 2, y + 20 + offset);
+    ctx.stroke();
+  }
+}
+
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  const myDistance = players[myPlayer]?.distance || 0;
+  const roadOffset = myDistance % 40;
+
+
+  drawRoad(roadOffset);
+
+  Object.entries(players).forEach(([id, player], index) => {
+    const relativeY = playerCenterY - (player.distance - myDistance);
+
+    // Si está muy lejos, no lo dibujamos (optimización)
+    if (relativeY < -100 || relativeY > canvas.height + 100) return;
+
+    ctx.fillStyle = id === myPlayer ? "red" : "blue";
+
+    const x = id === "player1" ? 250 : 450;
+
+    ctx.fillRect(
+      x,
+      relativeY - carHeight / 2,
+      carWidth,
+      carHeight
+    );
+  });
+
+  requestAnimationFrame(draw);
+}
+
+
+async function sendAudioForAnalysis() {
+    return Math.floor(Math.random() * 101); // valor simulado entre 0 y 100
+    
+  /*const response = await fetch("/audio/sample.wav");
+  const audioBlob = await response.blob();
+
+  const formData = new FormData();
+  formData.append("audio", audioBlob, "sample.wav");
+  formData.append("playerId", myPlayer);
+  formData.append("expectedWord", "avanza");
+
+  // URL dummy del servicio Python
+  const result = await fetch("http://localhost:8000/analyze-audio", {
+    method: "POST",
+    body: formData
+  });
+
+  const data = await result.json();
+  return data.similarity; // número */
+}
+
+
+draw();
