@@ -9,29 +9,24 @@ const playerCenterY = canvas.height / 2;
 const carWidth = 50;
 const carHeight = 80;
 
+let mediaRecorder;
+let audioChunks = [];
+let isRecording = false;
+let silenceTimer = null;
+
+const VOICE_THRESHOLD = 8; // ajustar según micrófono
+const SILENCE_TIME = 2000; // 2 segundos de silencio
+
+let playerState = {
+  currentWordIndex: 0,
+};
+
 socket.on("currentPlayers", (data) => {
   players = data;
 });
 
 socket.on("updatePlayers", (data) => {
   players = data;
-});
-
-// Control: tecla W
-document.addEventListener("keydown", async (e) => {
-  if (e.key === "w") {
-    try {
-      const similarity = await sendAudioForAnalysis();
-
-      socket.emit("analyzeResult", {
-        player: myPlayer,
-        similarity
-      });
-
-    } catch (err) {
-      console.error("Error enviando audio", err);
-    }
-  }
 });
 
 function drawRoad(offset) {
@@ -55,7 +50,6 @@ function draw() {
   const myDistance = players[myPlayer]?.distance || 0;
   const roadOffset = myDistance % 40;
 
-
   drawRoad(roadOffset);
 
   Object.entries(players).forEach(([id, player], index) => {
@@ -68,21 +62,102 @@ function draw() {
 
     const x = id === "player1" ? 250 : 450;
 
-    ctx.fillRect(
-      x,
-      relativeY - carHeight / 2,
-      carWidth,
-      carHeight
-    );
+    ctx.fillRect(x, relativeY - carHeight / 2, carWidth, carHeight);
   });
 
   requestAnimationFrame(draw);
 }
 
+async function initMicrophone() {
+  const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+  const audioContext = new AudioContext();
+  const source = audioContext.createMediaStreamSource(stream);
+  const analyser = audioContext.createAnalyser();
+
+  analyser.fftSize = 2048;
+  source.connect(analyser);
+
+  mediaRecorder = new MediaRecorder(stream);
+  mediaRecorder.ondataavailable = (e) => audioChunks.push(e.data);
+  mediaRecorder.onstop = handleRecordingStop;
+
+  detectVoice(analyser);
+}
+
+function detectVoice(analyser) {
+  const data = new Uint8Array(analyser.fftSize);
+
+  function loop() {
+    analyser.getByteTimeDomainData(data);
+
+    let sum = 0;
+    for (let i = 0; i < data.length; i++) {
+      sum += Math.abs(data[i] - 128);
+    }
+
+    const volume = sum / data.length;
+
+    if (volume > VOICE_THRESHOLD) {
+      if (!isRecording) {
+        console.log("🎤 Voz detectada, volumen:", volume.toFixed(2));
+        startRecording();
+      }
+      resetSilenceTimer();
+    }
+
+    requestAnimationFrame(loop);
+  }
+
+  loop();
+}
+
+function startRecording() {
+  audioChunks = [];
+  isRecording = true;
+  mediaRecorder.start();
+  console.log("🎙️ Grabando...");
+}
+
+function resetSilenceTimer() {
+  clearTimeout(silenceTimer);
+  silenceTimer = setTimeout(stopRecording, SILENCE_TIME);
+}
+
+function stopRecording() {
+  if (!isRecording) return;
+
+  isRecording = false;
+  mediaRecorder.stop();
+  console.log("🛑 Grabación finalizada");
+}
+
+async function handleRecordingStop() {
+  const audioBlob = new Blob(audioChunks, { type: "audio/webm" });
+
+  // 🔹 SIMULACIÓN (luego va el fetch al servicio Python)
+  const similarity = await sendAudioForAnalysis();
+
+  console.log("Similarity:", similarity);
+
+  if (similarity > 50) {
+    playerState.currentWordIndex++;
+    console.log("✅ Palabra correcta → siguiente");
+
+    socket.emit("analyzeResult", {
+      player: myPlayer,
+      similarity,
+    });
+  } else {
+    console.log("❌ Palabra incorrecta");
+  }
+}
+
+initMicrophone();
 
 async function sendAudioForAnalysis() {
-    return Math.floor(Math.random() * 101); // valor simulado entre 0 y 100
-    
+  return Math.floor(Math.random() * 101); // valor simulado entre 0 y 100
+
   /*const response = await fetch("/audio/sample.wav");
   const audioBlob = await response.blob();
 
@@ -100,6 +175,5 @@ async function sendAudioForAnalysis() {
   const data = await result.json();
   return data.similarity; // número */
 }
-
 
 draw();
