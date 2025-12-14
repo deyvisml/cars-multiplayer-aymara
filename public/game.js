@@ -250,9 +250,8 @@ async function handleRecordingStop() {
   const audioBlob = new Blob(audioChunks, { type: "audio/webm" });
 
   // 🔹 SIMULACIÓN (luego va el fetch al servicio Python)
-  const similarity = await sendAudioForAnalysis(audioBlob);
+  let similarity = await sendAudioForAnalysis(audioBlob);
 
-  console.log("Similarity:", similarity);
 
   if (similarity > 50) {
     playerState.currentWordIndex++;

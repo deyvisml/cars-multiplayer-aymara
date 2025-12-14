@@ -28,15 +28,6 @@ io.on("connection", (socket) => {
     if (similarity > 50 && players[player]) {
       players[player].distance += similarity * 0.2;
 
-      // 🚩 CONDICIÓN DE VICTORIA (palabras completadas)
-      if (players[player].distance >= 100) {
-        gameFinished = true;
-        winner = player;
-
-        io.emit("gameOver", { winner });
-        return;
-      }
-
       io.emit("updatePlayers", players);
     }
   });
