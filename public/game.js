@@ -10,8 +10,20 @@ let players = {};
 const myPlayer = prompt("Escribe: player1 o player2");
 
 const playerCenterY = canvas.height / 2;
-const carWidth = 50;
+const carWidth = 100;
 const carHeight = 80;
+
+const carImgPlayer1 = new Image();
+carImgPlayer1.src = "/utils/yellow_car.png";
+
+const carImgPlayer2 = new Image();
+carImgPlayer2.src = "/utils/red_card.png";
+
+// opcional: para debug
+carImgPlayer1.onload = () => console.log("✅ yellow_car cargado");
+carImgPlayer2.onload = () => console.log("✅ red_car cargado");
+carImgPlayer1.onerror = () => console.error("❌ No cargó yellow_car");
+carImgPlayer2.onerror = () => console.error("❌ No cargó red_car");
 
 let mediaRecorder;
 let audioChunks = [];
@@ -20,7 +32,7 @@ let silenceTimer = null;
 
 let gameOver = false;
 
-const VOICE_THRESHOLD = 30; // ajustar según micrófono
+const VOICE_THRESHOLD = 15; // ajustar según micrófono
 const SILENCE_TIME = 2000; // 2 segundos de silencio
 
 let words = [];
@@ -89,11 +101,23 @@ function draw() {
     // Si está muy lejos, no lo dibujamos (optimización)
     if (relativeY < -100 || relativeY > canvas.height + 100) return;
 
-    ctx.fillStyle = id === myPlayer ? "red" : "blue";
-
+    // ----------------------
+    // ctx.fillStyle = id === myPlayer ? "red" : "blue";
+    // const x = id === "player1" ? 250 : 450;
+    // ctx.fillRect(x, relativeY - carHeight / 2, carWidth, carHeight);
+    // --------------------
     const x = id === "player1" ? 250 : 450;
+    const y = relativeY - carHeight / 2;
 
-    ctx.fillRect(x, relativeY - carHeight / 2, carWidth, carHeight);
+    const img = id === "player1" ? carImgPlayer1 : carImgPlayer2;
+
+    // Si la imagen aún no cargó, dibuja rectángulo como fallback
+    if (img.complete && img.naturalWidth > 0) {
+        ctx.drawImage(img, x, y, carWidth, carHeight);
+    } else {
+        ctx.fillStyle = id === "player1" ? "yellow" : "red";
+        ctx.fillRect(x, y, carWidth, carHeight);
+    }
   });
 
   requestAnimationFrame(draw);
