@@ -1,3 +1,7 @@
+const params = new URLSearchParams(window.location.search);
+const categoryId = params.get("id");          // "1" (string) o null
+const categoryIdNum = Number(categoryId);     // 1 (number) o NaN
+
 const socket = io();
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
@@ -97,8 +101,11 @@ function draw() {
 
 async function loadWords() {
   try {
-    //const response = await fetch("http://localhost:3000/categories/1/words");
-    const response = await fetch("/data/words.json");
+
+    // const response = await fetch("http://localhost:8000/categories/1/words");  /* version deyvis */
+    const response = await fetch("http://127.0.0.1:8000/categories/2/words");  /* version Juan */
+    // const response = await fetch(`http://127.0.0.1:8000/categories/${categoryIdNum}/words`);
+    // const response = await fetch("/data/words.json");
 
     words = await response.json();
 
@@ -271,3 +278,5 @@ async function sendAudioForAnalysis() {
 }
 
 draw();
+
+

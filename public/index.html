@@ -5,23 +5,56 @@
   <title>Menú</title>
   <style>
     body{
-      margin:0; height:100vh; display:flex; align-items:center; justify-content:center;
-      background:#fff; font-family: system-ui, Arial;
+      margin:0; 
+      padding: 0;
+      height:100vh; 
+      display:flex; 
+      align-items:center; 
+      justify-content:center;
+      background:#000000; 
+      font-family: system-ui, Arial;
     }
-    .box{ display:flex; flex-direction:column; gap:12px; }
+    .box{ display:flex; flex-direction:column; gap:0; }
     a{
-      text-decoration:none; text-align:center;
-      padding:14px 18px; border:1px solid #111; border-radius:10px;
-      color:#111; font-weight:600;
+      text-decoration:none; 
+      text-align:center;
+      padding:0; 
+      margin: 0;
+      color:#111; 
+      font-weight:600;
     }
-    a:hover{ transform: translateY(-1px); }
+
+    .container{
+      background: black;
+    }
+    .thumb{
+      display: block;      /* elimina el espacio extra de inline */
+      height: 100vh;       /* ocupa exactamente el alto */
+      width: auto;         /* mantiene proporción */
+      margin: 0;
+      border: 0;
+    }
   </style>
 </head>
 <body>
-  <div class="box">
-    <a href="/game.html">🎮 Ir al juego</a>
+  <div class="box" cass="container">
+
+    <!-- <a href="/game.html?id=1">animales</a> -->
+
+    <!-- <a href="/game.html">🎮 Ir al juego</a>
     <a href="/category.html">🟥 Pantalla roja</a>
-    <a href="/data/words.json" target="_blank">📚 Ver words.json</a>
+    <a href="/data/words.json" target="_blank">📚 Ver words.json</a> -->
+<!-- 
+    <a href="/game.html?id=1">animales</a>
+    <a href="/game.html?id=2">frutas</a>
+    <a href="/game.html?id=3">pintura</a>
+    <a href="/game.html?id=4">amigos</a>
+    <a href="/game.html?id=5">números</a> -->
+
+    <a href="/game.html?id=1"  aria-label="Animales">
+      <img src="/utils/mainBackground.png" alt="Animales" class="thumb"/>
+    </a>
+
   </div>
 </body>
 </html>
