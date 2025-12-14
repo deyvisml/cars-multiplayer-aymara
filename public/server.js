@@ -19,8 +19,8 @@ app.get("/game", (req, res) =>
   res.sendFile(path.join(__dirname, "public", "game.html"))
 );
 
-app.get("/red", (req, res) =>
-  res.sendFile(path.join(__dirname, "public", "red.html"))
+app.get("/category", (req, res) =>
+  res.sendFile(path.join(__dirname, "public", "category.html"))
 );
 
 // ✅ Aquí debajo dejas tu lógica socket.io (lo que ya tengas)
