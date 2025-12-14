@@ -104,8 +104,6 @@ async function loadWords() {
 
     // const response = await fetch("http://localhost:8000/categories/1/words");  /* version deyvis */
     const response = await fetch("http://127.0.0.1:8000/categories/2/words");  /* version Juan */
-    // const response = await fetch(`http://127.0.0.1:8000/categories/${categoryIdNum}/words`);
-    // const response = await fetch("/data/words.json");
 
     words = await response.json();
 
@@ -228,7 +226,7 @@ async function handleRecordingStop() {
   const audioBlob = new Blob(audioChunks, { type: "audio/webm" });
 
   // 🔹 SIMULACIÓN (luego va el fetch al servicio Python)
-  const similarity = await sendAudioForAnalysis();
+  const similarity = await sendAudioForAnalysis(audioBlob);
 
   console.log("Similarity:", similarity);
 
@@ -256,25 +254,28 @@ initMicrophone();
 
 loadWords();
 
-async function sendAudioForAnalysis() {
-  return Math.floor(Math.random() * 101); // valor simulado entre 0 y 100
-
-  /*const response = await fetch("/audio/sample.wav");
-  const audioBlob = await response.blob();
+async function sendAudioForAnalysis(audioBlob) {
+  // ⛔ Seguridad extra (por si acaso)
+  if (gameOver) return 0;
 
   const formData = new FormData();
-  formData.append("audio", audioBlob, "sample.wav");
-  formData.append("playerId", myPlayer);
-  formData.append("expectedWord", "avanza");
 
-  // URL dummy del servicio Python
-  const result = await fetch("http://localhost:8000/analyze-audio", {
+  // 1️⃣ Audio
+  formData.append("audio", audioBlob, "sample.webm");
+
+  // 3️⃣ Índice de la palabra actual de ESE jugador
+  formData.append("word_id", words[playerState.currentWordIndex]?.id || -1);
+
+  const response = await fetch("http://localhost:8000/evaluate", {
     method: "POST",
-    body: formData
+    body: formData,
   });
 
-  const data = await result.json();
-  return data.similarity; // número */
+  const data = await response.json();
+
+  console.log("Respuesta del servidor de análisis:", data);
+
+  return data.final_score; // número
 }
 
 draw();
