@@ -13,6 +13,9 @@ let players = {
   player2: { distance: 0 },
 };
 
+let gameFinished = false;
+let winner = null;
+
 io.on("connection", (socket) => {
   console.log("Jugador conectado:", socket.id);
 
@@ -20,13 +23,31 @@ io.on("connection", (socket) => {
 
   // 🔴 YA NO usamos "move"
   socket.on("analyzeResult", ({ player, similarity }) => {
-    if (players[player]) {
-      console.log(`Jugador ${player} tiene similitud: ${similarity}`);
-      const advance = similarity * 0.2; // regla simple
-      players[player].distance += advance;
+    if (gameFinished) return;
+
+    if (similarity > 50 && players[player]) {
+      players[player].distance += similarity * 0.2;
+
+      // 🚩 CONDICIÓN DE VICTORIA (palabras completadas)
+      if (players[player].distance >= 100) {
+        gameFinished = true;
+        winner = player;
+
+        io.emit("gameOver", { winner });
+        return;
+      }
 
       io.emit("updatePlayers", players);
     }
+  });
+
+  socket.on("playerFinished", ({ player }) => {
+    if (gameFinished) return;
+
+    gameFinished = true;
+    winner = player;
+
+    io.emit("gameOver", { winner });
   });
 
   socket.on("disconnect", () => {

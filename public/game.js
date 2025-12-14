@@ -14,12 +14,26 @@ let audioChunks = [];
 let isRecording = false;
 let silenceTimer = null;
 
+let gameOver = false;
+
 const VOICE_THRESHOLD = 8; // ajustar según micrófono
 const SILENCE_TIME = 2000; // 2 segundos de silencio
+
+let words = [];
 
 let playerState = {
   currentWordIndex: 0,
 };
+
+function stopGame() {
+  gameOver = true;
+
+  if (mediaRecorder && mediaRecorder.state !== "inactive") {
+    mediaRecorder.stop();
+  }
+
+  console.log("🎤 Grabación detenida (fin del juego)");
+}
 
 socket.on("currentPlayers", (data) => {
   players = data;
@@ -27,6 +41,19 @@ socket.on("currentPlayers", (data) => {
 
 socket.on("updatePlayers", (data) => {
   players = data;
+});
+
+socket.on("gameOver", ({ winner }) => {
+  stopGame();
+
+  const resultScreen = document.getElementById("result-screen");
+  resultScreen.classList.remove("hidden");
+
+  if (winner === myPlayer) {
+    resultScreen.textContent = "🏆 YOU WIN";
+  } else {
+    resultScreen.textContent = "💀 YOU LOSE";
+  }
 });
 
 function drawRoad(offset) {
@@ -68,6 +95,62 @@ function draw() {
   requestAnimationFrame(draw);
 }
 
+async function loadWords() {
+  try {
+    //const response = await fetch("http://localhost:3000/categories/1/words");
+    const response = await fetch("/data/words.json");
+
+    words = await response.json();
+
+    console.log("Palabras cargadas:", words);
+
+    updateWordUI();
+  } catch (error) {
+    console.error("Error cargando palabras", error);
+  }
+}
+
+function updateWordUI() {
+  const wordElement = document.getElementById("current-word");
+  const progressElement = document.getElementById("progress-text");
+
+  if (!words.length) {
+    wordElement.textContent = "...";
+    progressElement.textContent = "0 / 0";
+    return;
+  }
+
+  // 🏁 Ya terminó todas las palabras
+  if (playerState.currentWordIndex >= words.length) {
+    wordElement.textContent = "🏁 Fin";
+    progressElement.textContent = `${words.length} / ${words.length}`;
+    return;
+  }
+
+  // 👉 PALABRA ACTUAL (NO suma al progreso todavía)
+  const index = playerState.currentWordIndex;
+  const word = words[index];
+
+  wordElement.textContent = word.aymara;
+
+  // 🔑 CLAVE: el progreso es el índice, no índice + 1
+  progressElement.textContent = `${index} / ${words.length}`;
+}
+
+function updateProgressUI() {
+  const progressElement = document.getElementById("progress-text");
+
+  if (!words.length) {
+    progressElement.textContent = "0 / 0";
+    return;
+  }
+
+  const current = playerState.currentWordIndex + 1;
+  const total = words.length;
+
+  progressElement.textContent = `${current} / ${total}`;
+}
+
 async function initMicrophone() {
   const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
 
@@ -99,7 +182,7 @@ function detectVoice(analyser) {
     const volume = sum / data.length;
 
     if (volume > VOICE_THRESHOLD) {
-      if (!isRecording) {
+      if (!isRecording && !gameOver) {
         console.log("🎤 Voz detectada, volumen:", volume.toFixed(2));
         startRecording();
       }
@@ -133,6 +216,8 @@ function stopRecording() {
 }
 
 async function handleRecordingStop() {
+  if (gameOver) return;
+
   const audioBlob = new Blob(audioChunks, { type: "audio/webm" });
 
   // 🔹 SIMULACIÓN (luego va el fetch al servicio Python)
@@ -142,6 +227,13 @@ async function handleRecordingStop() {
 
   if (similarity > 50) {
     playerState.currentWordIndex++;
+    updateWordUI();
+
+    // 🏁 VERIFICAR FIN DEL JUEGO (AQUÍ VA)
+    if (playerState.currentWordIndex >= words.length) {
+      socket.emit("playerFinished", { player: myPlayer });
+    }
+
     console.log("✅ Palabra correcta → siguiente");
 
     socket.emit("analyzeResult", {
@@ -154,6 +246,8 @@ async function handleRecordingStop() {
 }
 
 initMicrophone();
+
+loadWords();
 
 async function sendAudioForAnalysis() {
   return Math.floor(Math.random() * 101); // valor simulado entre 0 y 100
