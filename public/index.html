@@ -1,69 +1,27 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Juego 2D Multijugador</title>
-    <style>
-      body {
-        margin: 0;
-        background: #111;
-      }
-      canvas {
-        display: block;
-        margin: auto;
-        background: #333;
-      }
-      #word-container {
-        position: absolute;
-        top: 20px;
-        width: 100%;
-        text-align: center;
-        font-size: 32px;
-        font-weight: bold;
-        color: white;
-        pointer-events: none;
-      }
-      #progress-container {
-        position: absolute;
-        top: 65px;
-        width: 100%;
-        text-align: center;
-        font-size: 18px;
-        color: #ddd;
-        pointer-events: none;
-      }
-
-      #result-screen {
-        position: absolute;
-        inset: 0;
-        background: rgba(0, 0, 0, 0.85);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        font-size: 48px;
-        color: white;
-        z-index: 10;
-      }
-
-      .hidden {
-        display: none !important;
-      }
-    </style>
-  </head>
-  <body>
-    <div id="result-screen" class="hidden"></div>
-
-    <div id="word-container">
-      <span id="current-word">...</span>
-    </div>
-
-    <div id="progress-container">
-      <span id="progress-text">0 / 0</span>
-    </div>
-
-    <canvas id="game" width="800" height="600"></canvas>
-
-    <script src="/socket.io/socket.io.js"></script>
-    <script src="game.js"></script>
-  </body>
+<head>
+  <meta charset="UTF-8" />
+  <title>Menú</title>
+  <style>
+    body{
+      margin:0; height:100vh; display:flex; align-items:center; justify-content:center;
+      background:#fff; font-family: system-ui, Arial;
+    }
+    .box{ display:flex; flex-direction:column; gap:12px; }
+    a{
+      text-decoration:none; text-align:center;
+      padding:14px 18px; border:1px solid #111; border-radius:10px;
+      color:#111; font-weight:600;
+    }
+    a:hover{ transform: translateY(-1px); }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <a href="/game.html">🎮 Ir al juego</a>
+    <a href="/category.html">🟥 Pantalla roja</a>
+    <a href="/data/words.json" target="_blank">📚 Ver words.json</a>
+  </div>
+</body>
 </html>
