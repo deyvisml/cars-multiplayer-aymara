@@ -20,7 +20,7 @@ let silenceTimer = null;
 
 let gameOver = false;
 
-const VOICE_THRESHOLD = 8; // ajustar según micrófono
+const VOICE_THRESHOLD = 30; // ajustar según micrófono
 const SILENCE_TIME = 2000; // 2 segundos de silencio
 
 let words = [];

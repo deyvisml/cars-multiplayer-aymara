@@ -7,11 +7,15 @@
       body {
         margin: 0;
         background: #111;
+        height: 100%; 
+        /* overflow: hidden;  */
+        margin: 0;
       }
       canvas {
         display: block;
         margin: auto;
-        background: #333;
+        /* background: #333;
+        display: block; margin: 0 auto;  */
       }
       #word-container {
         position: absolute;
@@ -48,6 +52,12 @@
       .hidden {
         display: none !important;
       }
+
+      .canvasContainer{
+        /* border: 5px solid red; */
+        width: 440px;
+        height: 100vh;
+      }
     </style>
   </head>
   <body>
@@ -61,7 +71,7 @@
       <span id="progress-text">0 / 0</span>
     </div>
 
-    <canvas id="game" width="800" height="600"></canvas>
+    <canvas id="game" class="canvasContainer" width="800" height="600"></canvas>
 
     <script src="/socket.io/socket.io.js"></script>
     <script src="game.js"></script>
